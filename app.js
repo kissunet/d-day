@@ -38,8 +38,17 @@ let state = {
   viewMode: 'grid',
   theme: 'dark',
   activeDetailId: null,
-  activeMilestoneTab: 'months'
+  activeMilestoneTab: 'months',
+  activeSmartMilestoneTab: 'months'
 };
+
+function getTodayDateString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 let deferredPrompt = null; // PWA 설치 프롬프트 보관용
 
@@ -338,10 +347,12 @@ function generateMilestones(item) {
     const m = String(mDate.getMonth() + 1).padStart(2, '0');
     const d = String(mDate.getDate()).padStart(2, '0');
     const dateStr = `${y}.${m}.${d}`;
+    const rawDateStr = `${y}-${m}-${d}`;
 
     return {
       title,
       dateStr,
+      rawDateStr,
       statusText,
       daysDiff,
       isPassed,
@@ -816,6 +827,49 @@ function renderMilestones(item) {
   `).join('');
 }
 
+// 스마트 마일스톤 도우미 [S] 모달 관련 함수
+function openSmartMilestoneModal() {
+  const formTargetDate = document.getElementById('formTargetDate');
+  const calcStartDate = document.getElementById('calcStartDate');
+  if (calcStartDate) {
+    calcStartDate.value = (formTargetDate && formTargetDate.value) ? formTargetDate.value : getTodayDateString();
+  }
+  renderSmartMilestoneList();
+  document.getElementById('smartMilestoneModal').classList.add('active');
+}
+
+function renderSmartMilestoneList() {
+  const calcStartDate = document.getElementById('calcStartDate');
+  const grid = document.getElementById('smartMilestoneGrid');
+  if (!calcStartDate || !grid) return;
+
+  const startDateStr = calcStartDate.value || getTodayDateString();
+  const milestones = generateMilestones({ targetDate: startDateStr });
+  const currentTab = state.activeSmartMilestoneTab || 'months';
+  const list = milestones[currentTab] || [];
+
+  if (list.length === 0) {
+    grid.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">마일스톤 목록이 없습니다.</p>';
+    return;
+  }
+
+  grid.innerHTML = list.map(m => `
+    <div class="milestone-item smart-milestone-item ${m.isPassed ? 'passed' : ''} ${m.isToday ? 'today' : ''}" onclick="selectSmartMilestoneDate('${m.rawDateStr}')">
+      <span class="milestone-title">${m.title}</span>
+      <span class="milestone-date"><i class="fa-regular fa-calendar"></i> ${m.dateStr}</span>
+      <span class="milestone-dday">${m.statusText}</span>
+    </div>
+  `).join('');
+}
+
+function selectSmartMilestoneDate(rawDateStr) {
+  const formTargetDate = document.getElementById('formTargetDate');
+  if (formTargetDate) {
+    formTargetDate.value = rawDateStr;
+  }
+  document.getElementById('smartMilestoneModal').classList.remove('active');
+}
+
 // 9. 모달 조작 및 카드 이미지 캡처
 function openAddModal() {
   document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-calendar-plus"></i> 새 디데이 등록`;
@@ -1226,6 +1280,67 @@ function bindEvents() {
     };
     reader.readAsText(file);
   });
+  // [S] 스마트 마일스톤 버튼 & 모달 이벤트
+  const openSmartMilestoneBtn = document.getElementById('openSmartMilestoneBtn');
+  if (openSmartMilestoneBtn) {
+    openSmartMilestoneBtn.addEventListener('click', openSmartMilestoneModal);
+  }
+
+  const closeSmartMilestoneModalBtn = document.getElementById('closeSmartMilestoneModalBtn');
+  if (closeSmartMilestoneModalBtn) {
+    closeSmartMilestoneModalBtn.addEventListener('click', () => {
+      document.getElementById('smartMilestoneModal').classList.remove('active');
+    });
+  }
+
+  const calcStartDate = document.getElementById('calcStartDate');
+  if (calcStartDate) {
+    calcStartDate.addEventListener('change', renderSmartMilestoneList);
+  }
+
+  // 퀵 선택 버튼 이벤트
+  const presetTodayBtn = document.getElementById('presetTodayBtn');
+  if (presetTodayBtn) {
+    presetTodayBtn.addEventListener('click', () => {
+      document.getElementById('calcStartDate').value = getTodayDateString();
+      renderSmartMilestoneList();
+    });
+  }
+
+  const preset100DaysAgoBtn = document.getElementById('preset100DaysAgoBtn');
+  if (preset100DaysAgoBtn) {
+    preset100DaysAgoBtn.addEventListener('click', () => {
+      document.getElementById('calcStartDate').value = getPastDateString(100);
+      renderSmartMilestoneList();
+    });
+  }
+
+  const preset1YearAgoBtn = document.getElementById('preset1YearAgoBtn');
+  if (preset1YearAgoBtn) {
+    preset1YearAgoBtn.addEventListener('click', () => {
+      document.getElementById('calcStartDate').value = getPastDateString(365);
+      renderSmartMilestoneList();
+    });
+  }
+
+  // 스마트 마일스톤 탭 전환
+  document.querySelectorAll('#smartMilestoneTabs .m-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      document.querySelectorAll('#smartMilestoneTabs .m-tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      state.activeSmartMilestoneTab = e.target.dataset.tab;
+      renderSmartMilestoneList();
+    });
+  });
+
+  // 날짜 입력 필드 클릭 시 달력 피커 자동 호출 지원
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    input.addEventListener('click', (e) => {
+      if (typeof e.target.showPicker === 'function') {
+        try { e.target.showPicker(); } catch (err) {}
+      }
+    });
+  });
 }
 
 function openCategoryModal() {
@@ -1239,3 +1354,5 @@ window.openCategoryModal = openCategoryModal;
 window.editCategory = editCategory;
 window.deleteCategory = deleteCategory;
 window.moveCategory = moveCategory;
+window.openSmartMilestoneModal = openSmartMilestoneModal;
+window.selectSmartMilestoneDate = selectSmartMilestoneDate;

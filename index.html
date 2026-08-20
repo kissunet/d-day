@@ -194,7 +194,12 @@
         <div class="form-row">
           <div class="form-group flex-1">
             <label for="formTargetDate">기준 날짜 <span class="required">*</span></label>
-            <input type="date" id="formTargetDate" required>
+            <div class="date-input-group">
+              <input type="date" id="formTargetDate" required>
+              <button type="button" id="openSmartMilestoneBtn" class="btn-s-helper" title="스마트 마일스톤 날짜 계산기">
+                <span>S</span>
+              </button>
+            </div>
           </div>
 
           <div class="form-group flex-1">
@@ -434,6 +439,51 @@
         <div class="category-list-section">
           <h4 style="margin-bottom: 12px; font-size: 15px; color: var(--text-main);"><i class="fa-solid fa-list-ul"></i> 등록된 카테고리 목록</h4>
           <div class="category-list" id="categoryManageList">
+            <!-- JS 동적 생성 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [모달 6] 스마트 마일스톤 선택 모달 -->
+  <div class="modal-overlay" id="smartMilestoneModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> 스마트 마일스톤 날짜 계산기</h3>
+        <button class="modal-close" id="closeSmartMilestoneModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- 시작 날짜 설정 및 퀵 선택 영역 -->
+        <div class="smart-calc-box">
+          <div class="form-group mb-0">
+            <label for="calcStartDate">시작 날짜 (만난 날 / 시작일 / 입사일)</label>
+            <div class="smart-date-row">
+              <input type="date" id="calcStartDate">
+              <div class="quick-preset-btns">
+                <button type="button" class="btn btn-secondary btn-sm" id="presetTodayBtn">오늘</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="preset100DaysAgoBtn">100일 전</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="preset1YearAgoBtn">1년 전</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 마일스톤 탭 & 리스트 -->
+        <div class="milestones-container" style="margin-top: 16px;">
+          <div class="milestone-header">
+            <h4><i class="fa-solid fa-flag-checkered"></i> 마일스톤 목록 (항목 클릭시 기준 날짜로 입력됩니다)</h4>
+            <span class="milestone-subtext">원하는 기념일/마일스톤을 누르면 '기준 날짜' 필드에 지정됩니다.</span>
+          </div>
+
+          <div class="milestone-tabs" id="smartMilestoneTabs">
+            <button type="button" class="m-tab active" data-tab="months">1달~12달 기념일</button>
+            <button type="button" class="m-tab" data-tab="hundreds">100일 단위 (100일~1000일)</button>
+            <button type="button" class="m-tab" data-tab="years">주년 단위 (1년~10년)</button>
+          </div>
+
+          <!-- 클릭 가능한 마일스톤 그리드 리스트 -->
+          <div class="milestone-grid" id="smartMilestoneGrid">
             <!-- JS 동적 생성 -->
           </div>
         </div>

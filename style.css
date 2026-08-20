@@ -1341,4 +1341,123 @@ body {
   pointer-events: none;
 }
 
+/* ==========================================================================
+   Smart Milestone Helper [S] & Calculator Styles
+   ========================================================================== */
+
+#smartMilestoneModal {
+  z-index: 1200 !important;
+}
+
+input[type="date"] {
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.date-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.date-input-group input[type="date"] {
+  flex: 1;
+}
+
+.btn-s-helper {
+  height: 42px;
+  padding: 0 16px;
+  background: var(--primary-gradient);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.btn-s-helper:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.55);
+}
+
+.smart-calc-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.smart-date-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.smart-date-row input[type="date"] {
+  flex: 1;
+  min-width: 180px;
+}
+
+.quick-preset-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-sm {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.smart-milestone-item {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.smart-milestone-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-accent) !important;
+  background: rgba(236, 72, 153, 0.15) !important;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25);
+}
+
+.smart-milestone-item::after {
+  content: '선택';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--primary-accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.smart-milestone-item:hover::after {
+  opacity: 1;
+}
+
+[data-theme="light"] .smart-calc-box {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+
 
