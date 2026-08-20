@@ -1228,6 +1228,7 @@ function bindEvents() {
   // JSON Export (디데이 + 카테고리 내보내기)
   document.getElementById('exportJsonBtn').addEventListener('click', () => {
     const backupPayload = {
+      version: 2,
       ddays: state.ddays,
       categories: state.categories,
       exportedAt: new Date().toISOString()
@@ -1252,22 +1253,40 @@ function bindEvents() {
       try {
         const importedData = JSON.parse(event.target.result);
         if (Array.isArray(importedData)) {
+          // 예전 백업 파일(배열만 있는 형태)일 경우: 카테고리는 기존 유지하고 디데이만 복원
           state.ddays = importedData;
           saveData();
+
+          // 복원된 디데이의 카테고리 필터 검증
+          if (state.currentFilter !== 'all' && !state.categories.some(c => c.id === state.currentFilter)) {
+            state.currentFilter = 'all';
+          }
+
           renderCategoryChips();
           renderCategorySelectOptions();
+          renderCategoryManageList();
           renderFilteredList();
           alert('디데이 목록이 성공적으로 복원되었습니다!');
           document.getElementById('backupModal').classList.remove('active');
         } else if (importedData && typeof importedData === 'object' && Array.isArray(importedData.ddays)) {
           state.ddays = importedData.ddays;
-          if (Array.isArray(importedData.categories)) {
+
+          // 백업 파일에 카테고리 목록이 존재하는 경우 함께 복원
+          if (Array.isArray(importedData.categories) && importedData.categories.length > 0) {
             state.categories = importedData.categories;
             saveCategories();
           }
+
           saveData();
+
+          // 복원 후 현재 필터가 유효하지 않으면 'all'로 리셋
+          if (state.currentFilter !== 'all' && !state.categories.some(c => c.id === state.currentFilter)) {
+            state.currentFilter = 'all';
+          }
+
           renderCategoryChips();
           renderCategorySelectOptions();
+          renderCategoryManageList();
           renderFilteredList();
           alert('디데이 및 카테고리가 성공적으로 복원되었습니다!');
           document.getElementById('backupModal').classList.remove('active');
@@ -1275,7 +1294,10 @@ function bindEvents() {
           alert('올바른 디데이 백업 파일 형식이 아닙니다.');
         }
       } catch (err) {
+        console.error('백업 복원 중 오류 발생:', err);
         alert('JSON 파일 읽기 중 오류가 발생했습니다.');
+      } finally {
+        e.target.value = '';
       }
     };
     reader.readAsText(file);
