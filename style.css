@@ -1315,3 +1315,30 @@ body {
   background: rgba(239, 68, 68, 0.1);
 }
 
+.cat-drag-handle {
+  cursor: grab;
+  color: var(--text-dim);
+  padding: 4px 6px 4px 0;
+  margin-right: 6px;
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+}
+
+.cat-drag-handle:hover {
+  color: var(--primary-accent);
+}
+
+.category-item.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--primary-accent) !important;
+  background: rgba(236, 72, 153, 0.08) !important;
+}
+
+.cat-action-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+

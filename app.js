@@ -7,6 +7,7 @@
 const STORAGE_KEY = 'dday_master_data_v1';
 const STORAGE_CAT_KEY = 'dday_master_categories_v1';
 const THEME_KEY = 'dday_master_theme';
+const SORT_KEY = 'dday_master_sort_preference';
 
 // 기본 카테고리 정의
 const DEFAULT_CATEGORIES = [
@@ -103,6 +104,7 @@ function getFutureDateString(daysAhead) {
 // 2. 앱 초기화
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initSort();
   loadCategories();
   loadData();
   bindEvents();
@@ -120,6 +122,21 @@ function initTheme() {
   state.theme = savedTheme;
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon();
+}
+
+// 정렬 설정 초기화 및 로드
+function initSort() {
+  const savedSort = localStorage.getItem(SORT_KEY);
+  if (savedSort && ['pinned', 'upcoming', 'recent', 'title'].includes(savedSort)) {
+    state.currentSort = savedSort;
+  } else {
+    state.currentSort = 'pinned';
+  }
+
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.value = state.currentSort;
+  }
 }
 
 function updateThemeIcon() {
@@ -529,12 +546,15 @@ function renderCategoryManageList() {
     return;
   }
 
-  listEl.innerHTML = state.categories.map(cat => {
+  const total = state.categories.length;
+
+  listEl.innerHTML = state.categories.map((cat, idx) => {
     const count = state.ddays.filter(d => d.category === cat.id).length;
     const isOther = cat.id === 'other';
 
     return `
-      <div class="category-item">
+      <div class="category-item" draggable="true" data-id="${cat.id}">
+        <span class="cat-drag-handle" title="드래그하여 순서 변경"><i class="fa-solid fa-grip-vertical"></i></span>
         <div class="category-item-info">
           <span class="category-badge-preview" style="background-color: ${cat.color}22; color: ${cat.color};">
             <i class="fa-solid ${cat.icon}"></i> ${escapeHTML(cat.label)}
@@ -542,6 +562,12 @@ function renderCategoryManageList() {
           <span class="cat-dday-count">디데이 ${count}개</span>
         </div>
         <div class="category-item-actions">
+          <button type="button" class="cat-action-btn move-btn" onclick="moveCategory('${cat.id}', -1)" ${idx === 0 ? 'disabled' : ''} title="위로 이동">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+          <button type="button" class="cat-action-btn move-btn" onclick="moveCategory('${cat.id}', 1)" ${idx === total - 1 ? 'disabled' : ''} title="아래로 이동">
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
           <button type="button" class="cat-action-btn edit-btn" onclick="editCategory('${cat.id}')" title="수정">
             <i class="fa-solid fa-pen"></i>
           </button>
@@ -554,6 +580,94 @@ function renderCategoryManageList() {
       </div>
     `;
   }).join('');
+
+  initCategoryDragAndDrop();
+}
+
+function moveCategory(catId, direction) {
+  const index = state.categories.findIndex(c => c.id === catId);
+  if (index === -1) return;
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= state.categories.length) return;
+
+  const temp = state.categories[index];
+  state.categories[index] = state.categories[targetIndex];
+  state.categories[targetIndex] = temp;
+
+  saveCategories();
+  renderCategoryChips();
+  renderCategorySelectOptions();
+  renderCategoryManageList();
+  renderFilteredList();
+}
+
+function initCategoryDragAndDrop() {
+  const listEl = document.getElementById('categoryManageList');
+  if (!listEl || listEl.dataset.dragInited === 'true') return;
+  listEl.dataset.dragInited = 'true';
+
+  let draggedItem = null;
+
+  listEl.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('.category-item');
+    if (!item) return;
+
+    draggedItem = item;
+    item.classList.add('dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.id || '');
+    }
+  });
+
+  listEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    const targetItem = e.target.closest('.category-item');
+    if (!targetItem || targetItem === draggedItem) return;
+
+    const rect = targetItem.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      listEl.insertBefore(draggedItem, targetItem);
+    } else {
+      listEl.insertBefore(draggedItem, targetItem.nextSibling);
+    }
+  });
+
+  listEl.addEventListener('dragend', () => {
+    if (draggedItem) {
+      draggedItem.classList.remove('dragging');
+      draggedItem = null;
+    }
+
+    const items = listEl.querySelectorAll('.category-item');
+    const newCategoriesOrder = [];
+    items.forEach(el => {
+      const cat = state.categories.find(c => c.id === el.dataset.id);
+      if (cat) newCategoriesOrder.push(cat);
+    });
+
+    if (newCategoriesOrder.length === state.categories.length) {
+      state.categories = newCategoriesOrder;
+      saveCategories();
+      renderCategoryChips();
+      renderCategorySelectOptions();
+      renderFilteredList();
+
+      const moveBtns = listEl.querySelectorAll('.category-item');
+      moveBtns.forEach((el, idx) => {
+        const upBtn = el.querySelector('.move-btn:nth-child(1)');
+        const downBtn = el.querySelector('.move-btn:nth-child(2)');
+        if (upBtn) upBtn.disabled = (idx === 0);
+        if (downBtn) downBtn.disabled = (idx === moveBtns.length - 1);
+      });
+    }
+  });
 }
 
 function resetCategoryForm() {
@@ -822,6 +936,12 @@ function bindEvents() {
     updateThemeIcon();
   });
 
+  // 헤더 카테고리 관리 버튼
+  const headerCategoryBtn = document.getElementById('headerCategoryBtn');
+  if (headerCategoryBtn) {
+    headerCategoryBtn.addEventListener('click', openCategoryModal);
+  }
+
   // 검색
   document.getElementById('searchInput').addEventListener('input', (e) => {
     state.searchQuery = e.target.value;
@@ -905,9 +1025,10 @@ function bindEvents() {
     resetCategoryForm();
   });
 
-  // 정렬 선택
+  // 정렬 선택 (설정 저장)
   document.getElementById('sortSelect').addEventListener('change', (e) => {
     state.currentSort = e.target.value;
+    localStorage.setItem(SORT_KEY, state.currentSort);
     renderFilteredList();
   });
 
@@ -1104,3 +1225,9 @@ function openCategoryModal() {
   renderCategoryManageList();
   document.getElementById('categoryModal').classList.add('active');
 }
+
+// 전역 스코프에 조작 함수 바인딩
+window.openCategoryModal = openCategoryModal;
+window.editCategory = editCategory;
+window.deleteCategory = deleteCategory;
+window.moveCategory = moveCategory;
