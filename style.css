@@ -917,6 +917,17 @@ body {
   gap: 12px;
 }
 
+.modal-footer.detail-actions {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-actions .right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Detail Modal Styling */
 .detail-hero-card {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
@@ -1182,6 +1193,46 @@ body {
     padding: 9px 14px;
     font-size: 13px;
     white-space: nowrap;
+  }
+
+  /* Detail Modal Actions Mobile Layout */
+  .modal-footer.detail-actions {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .modal-footer.detail-actions #detailShareImgBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+
+  .modal-footer.detail-actions .right-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .modal-footer.detail-actions .right-actions .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 11px 12px;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+
+  .milestone-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .m-tab {
+    flex-shrink: 0;
   }
 }
 
