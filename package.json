@@ -1,0 +1,20 @@
+{
+  "name": "dday-master",
+  "version": "1.0.0",
+  "description": "D-Day Master - 프리미엄 디데이 & 기념일 관리",
+  "main": "app.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "keywords": [
+    "dday",
+    "pwa",
+    "countdown"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0"
+  }
+}
