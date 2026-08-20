@@ -498,12 +498,18 @@ function renderCategoryChips() {
   ];
 
   state.categories.forEach(cat => {
-    const isActive = state.currentFilter === cat.id ? 'active' : '';
-    chipsHTML.push(`
-      <button class="chip ${isActive}" data-category="${cat.id}">
-        <i class="fa-solid ${cat.icon}"></i> ${escapeHTML(cat.label)}
-      </button>
-    `);
+    const count = state.ddays.filter(d => d.category === cat.id).length;
+    const isSelected = state.currentFilter === cat.id;
+
+    // 디데이가 1개 이상 존재하거나 현재 선택된 카테고리만 메인 필터 칩에 노출
+    if (count > 0 || isSelected) {
+      const isActive = isSelected ? 'active' : '';
+      chipsHTML.push(`
+        <button class="chip ${isActive}" data-category="${cat.id}">
+          <i class="fa-solid ${cat.icon}"></i> ${escapeHTML(cat.label)}
+        </button>
+      `);
+    }
   });
 
   chipsHTML.push(`
@@ -1105,6 +1111,7 @@ function bindEvents() {
     }
 
     saveData();
+    renderCategoryChips();
     renderCategoryManageList();
     renderFilteredList();
     document.getElementById('ddayFormModal').classList.remove('active');
@@ -1127,6 +1134,7 @@ function bindEvents() {
     if (confirm('이 디데이를 정말 삭제하시겠습니까?')) {
       state.ddays = state.ddays.filter(item => item.id !== state.activeDetailId);
       saveData();
+      renderCategoryChips();
       renderCategoryManageList();
       renderFilteredList();
       document.getElementById('detailModal').classList.remove('active');
