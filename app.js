@@ -33,7 +33,7 @@ let state = {
   ddays: [],
   categories: [],
   currentFilter: 'all',
-  currentSort: 'pinned',
+  currentSort: 'upcoming',
   searchQuery: '',
   viewMode: 'grid',
   theme: 'dark',
@@ -139,7 +139,7 @@ function initSort() {
   if (savedSort && ['pinned', 'upcoming', 'recent', 'title'].includes(savedSort)) {
     state.currentSort = savedSort;
   } else {
-    state.currentSort = 'pinned';
+    state.currentSort = 'upcoming';
   }
 
   const sortSelect = document.getElementById('sortSelect');
